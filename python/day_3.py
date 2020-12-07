@@ -2,7 +2,7 @@ import numpy as np
 
 from pathlib import Path
 
-tree_file = Path('dat/day_3.txt')
+tree_file = Path('../dat/day_3.txt')
 
 trees_text = tree_file.open('r').read()
 if trees_text[-1] == '\n':
