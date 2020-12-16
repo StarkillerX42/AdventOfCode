@@ -30,7 +30,8 @@ time = step_size
 step_loc = line2.index(str(step_size))
 not_found = True
 limit = 100000000000000
-print_lim = limit // 100
+print_lim = 1000000000
+print_count = 0
 while not_found:
     not_found = False
     if np.sum((time - (step_loc - bus_loc)) % buses != 0):
@@ -40,6 +41,8 @@ while not_found:
     if time > limit:
         print("Couldn't find a valid time")
         break
-
+    if print_count > print_lim:
+        print('Another billion')
+        print_count = 0
 
 print(f'Part 2: {time - step_size - step_loc}')
