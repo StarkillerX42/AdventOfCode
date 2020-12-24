@@ -4,7 +4,7 @@ from pathlib import Path
 
 data_file = Path('dat/day_6.txt')
 
-verbose = True
+verbose = False
 groups_1 = []
 groups_2 = []
 if data_file.exists():

@@ -4,7 +4,7 @@ import numpy as np
 from pathlib import Path
 
 
-here = Path(__file__).absolute().parent
+here = Path(__file__).absolute().parent.parent
 data_file = here / 'dat/day_2.txt'
 
 verbose = False

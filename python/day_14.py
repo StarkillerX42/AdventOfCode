@@ -37,7 +37,7 @@ def mask_ind(value: int, data_mask: str):
     return results
 
 
-verbose = True
+verbose = False
 mem_1 = {}
 mem_2 = {}
 mask = ''

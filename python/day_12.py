@@ -17,7 +17,7 @@ with data_file.open('r') as fil:
 
 
 orientations = ['N', 'E', 'S', 'W']
-verbose = True
+verbose = False
 
 
 class Ship:

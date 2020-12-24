@@ -7,7 +7,7 @@ data_file = Path('dat/day_10.txt')
 jolts = np.loadtxt(data_file.as_posix(), dtype=int)
 jolts = np.append([0, jolts.max() + 3], jolts)
 
-verbose = True
+verbose = False
 
 jolts.sort()
 
@@ -32,7 +32,7 @@ ways_to_reach = [1] + ([0] * (len(jolts) - 1))
 for i, jolt in enumerate(jolts):
     j = i + 1
     while j < len(jolts) and jolts[j] - jolt <= 3:
-        print(i, j, ways_to_reach[i], ways_to_reach[j])
+        # print(i, j, ways_to_reach[i], ways_to_reach[j])
         ways_to_reach[j] += ways_to_reach[i]
         j += 1
-    print(f'Part 2: {ways_to_reach[-1]}')
+print(f'Part 2: {ways_to_reach[-1]}')
