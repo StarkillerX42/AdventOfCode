@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from pprint import pprint
 
-data_file = Path(__file__).absolute().parent.parent / 'dat/day_18_test.txt'
+data_file = Path(__file__).absolute().parent.parent / 'dat/day_18.txt'
 
 equations = []
 with data_file.open('r') as fil:
@@ -51,35 +51,43 @@ class AdvancedMath(NewMath):
         self.equation_str = eqn
         # an extra space on the right is important for the addition regex to
         # grab the whole number
+        if self.equation_str[0] != ' ':
+            self.equation_str = ' ' + self.equation_str
         if self.equation_str[-1] != ' ':
             self.equation_str += ' '
         self.equation_str_0 = self.equation_str
 
-        # print(f'Entering advanced math: {self.equation_str}')
+        print(f'Entering advanced math: .{self.equation_str}.')
         # Parenthesis order of operations
         while '(' in self.equation_str:
             for exp in re.findall(r'\([0-9 +*]*\)', self.equation_str):
-                # print('Exp: .{}.'.format(exp))
+                print('Exp: .{}.'.format(exp))
                 exp_no_par = exp.rstrip(')').lstrip('(')
                 eqn = AdvancedMath(exp_no_par)
-                # print('Subs: .{} .'.format(eqn.value))
+                print('Subs: .{} .'.format(eqn.value))
                 self.equation_str = self.equation_str.replace(exp,
                                                               f'{eqn.value}')
-                # print(f'New eqn: .{self.equation_str}.')
+                print(f'New eqn: .{self.equation_str}.')
 
         # Simplify each + to a single value until either none remain and only
         # multiplication is left or the equation is two operands "1 + 2 "
         self.equation = self.equation_str.split()
         if len(self.equation) != 3:
-            # print(f'Entering while .{self.equation_str}.')
+            print(f'Entering while .{self.equation_str}.')
             while '+' in self.equation_str:
-                for exp in re.findall(r'\d+ \+ \d+ ', self.equation_str):
-                    # print('Exp: .{}.'.format(exp))
-                    eqn = AdvancedMath(exp)
-                    # print('Subs: .{} .'.format(eqn.value))
-                    self.equation_str = self.equation_str.replace(exp,
-                                                                  f'{eqn.value} ')
-                    # print(f'New eqn: .{self.equation_str}.')
+                exp = next(re.finditer(r' \d+ \+ \d+ ', self.equation_str))
+                print('Exp: .{}.'.format(exp.group()))
+                eqn = AdvancedMath(exp.group())
+                print('Subs: . {} .'.format(eqn.value))
+                print(f'Span: {exp.span()}')
+                # self.equation_str[exp.regs[0][0]
+                #                   :exp.regs[0][1]] = f'{eqn.value} '
+                self.equation_str = (f'{self.equation_str[:exp.span()[0]]}' 
+                                     f' {eqn.value} '
+                                     f'{self.equation_str[exp.span()[1]:]}')
+                # self.equation_str = self.equation_str.replace(exp,
+                #                                               f'{eqn.value} ')
+                print(f'New eqn: .{self.equation_str}.')
 
         # After either removing all addition and parenthesis or simplifying it
         # to only 2 values to add, solve the rest of the equation
@@ -109,7 +117,7 @@ print(f'Part 1: {total}')
 
 total_2 = 0
 for equation in equations:
-    m = AdvancedMath(equation + ' ')
+    m = AdvancedMath(' ' + equation + ' ')
     if verbose:
         print(m)
         # print(f' = {m.value}')
