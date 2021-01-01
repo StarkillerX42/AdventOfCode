@@ -2,7 +2,7 @@
 
 int main() {
     FILE* fp = fopen("dat/day_1.txt", "r");
-    bool verbose = true;
+    bool verbose = false;
     int i = 0;
     int j = 0;
     int k;
@@ -30,16 +30,6 @@ int main() {
         j++;
     }
     printf("Part 1 Fuel: %d\n", part_1);
-
-    j = 0;
-    while (rem > 0 && j < 1000) {
-        if (verbose) {
-            printf("%d %d\n", part_2, rem);
-        }
-        part_2 += rem;
-        rem = rem / 3 - 2;
-        j++;
-    }
     printf("Part 2 Fuel: %d\n", part_2);
     return 0;
 }
