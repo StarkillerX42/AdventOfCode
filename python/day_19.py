@@ -42,65 +42,89 @@ class Rule:
         else:
             self.type = 3
 
-    def check_match(self, message: str):
-        message_remainder = message
+        self.message_remainder = ""
+
+    def check_match(self, message: str) -> bool:
+        if len(message) == 0:
+            self.message_remainder = ""
+            return False
+        self.message_remainder = message
 
         if self.type == 1:
-            if message[0] == self.rules:
-                return message[1:]
+            if len(message) > 0:
+                if message[0] == self.rules:
+                    self.message_remainder = message[1:]
+                    return True
+                else:
+                    return False
             else:
-                return False
+                return True
 
         elif self.type == 2:
             print(f'    Parsing Type 2: {self.rules}')
             opt1, opt2 = self.rules.split('|')
             for rule in opt1.split():
-                print(f'        Going to rule {rule} for {message_remainder}')
-                message_remainder = rules_dict[int(rule)].check_match(
-                    message_remainder)
-                print(f'        Rule {rule} returned {message_remainder}')
-                if message_remainder == '':
-                    return True
-                elif message_remainder == False:
-                    message_remainder = message
+                print(f'        Going to rule {rule} for'
+                      f' {self.message_remainder}')
+
+                is_match = rules_dict[int(rule)].check_match(
+                    self.message_remainder)
+
+
+                if is_match:
+                    self.message_remainder = rules_dict[
+                        int(rule)].message_remainder
+                    print(f'        Rule {rule} returned'
+                          f' {self.message_remainder}')
+                else:
+                    self.message_remainder = message
                     break
             # This handles the or. If the first solution worked, then the
             # remainder is either empty or shortened
-            if message_remainder != message:
-                return message_remainder
-            print(f'    Option {opt1} failed, trying or')
+            if self.message_remainder != message:
+                return True
+
+            print(f'    Option {opt1} failed, trying {opt2}')
             for rule in opt2.split():
-                print(f'        Going to rule {rule} for {message_remainder}')
-                message_remainder = rules_dict[int(rule)].check_match(
-                    message_remainder)
-                print(f'        Rule {rule} returned {message_remainder}')
-                if message_remainder == '':
-                    return True
-                elif message_remainder == False:
-                    message_remainder = message
+                print(f'        Going to rule {rule} for'
+                      f' {self.message_remainder}')
+                is_match = rules_dict[int(rule)].check_match(
+                    self.message_remainder)
+                if is_match:
+                    self.message_remainder = rules_dict[
+                        int(rule)].message_remainder
+                    print(f'        Rule {rule} returned'
+                          f' {self.message_remainder}')
+                else:
+                    print(f'            Rule {rule} failed')
+                    return False
             # Checks if the second option succeeded
-            if message_remainder != message:
-                return message_remainder
+            if self.message_remainder != message:
+                return True
             else:
-                return False
+                raise ReferenceError("Inputs not solved, exiting")
 
         elif self.type == 3:
             print(f'    Parsing Type 3: {self.rules}')
             rules = self.rules.split()
             for rule in rules:
                 print('        Going to Rule {}'.format(rule))
-                message_remainder = rules_dict[int(rule)].check_match(
-                    message_remainder)
-                print('        Rule {} returned {}'.format(rule, message_remainder))
-                if (message_remainder == '') and (rule == rules[-1]):
-                    return True
-                elif message_remainder == '':
-                    return False
-                elif message_remainder is False:
+                is_match = rules_dict[int(rule)].check_match(
+                    self.message_remainder)
+                print('        Rule {} returned {}'.format(
+                    rule, rules_dict[int(rule)].message_remainder))
+                if is_match:
+                    self.message_remainder = rules_dict[
+                        int(rule)].message_remainder
+
+                else:
                     return False
 
-        if message_remainder:
-            return False
+            if self.message_remainder != message:
+                return True
+            else:
+                return False
+        raise ReferenceError("Inputs not solved, exiting")
 
     def __str__(self):
         return self.rules
@@ -111,11 +135,28 @@ for k, rule in rules_dict.items():
 
 match_rule = rules_dict[0]
 
-valids = []
-for message in messages[:1]:
+valids_1 = []
+for message in messages:
     print(f'# Solving for {message}')
     is_valid = match_rule.check_match(message)
-    print(f'{message} exited with {is_valid}')
-    valids.append(is_valid)
+    if is_valid and match_rule.message_remainder == "":
+        print(f'{message} exited with {is_valid}')
+        valids_1.append(is_valid)
+    else:
+        print(f'{message} exited with {match_rule.message_remainder}')
 
-print(f'Part 1: {sum(valids)}')
+print(f'Part 1: {sum(valids_1)}')
+
+valids_2 = []
+rules_dict[8] = Rule(8, "42 | 42 8")
+rules_dict[11] = Rule(11, "42 31 | 42 11 31")
+for message in messages:
+    print(f'# Solving for {message}')
+    is_valid = match_rule.check_match(message)
+    if is_valid and match_rule.message_remainder == "":
+        print(f'{message} exited with {is_valid}')
+        valids_2.append(is_valid)
+    else:
+        print(f'{message} exited with {match_rule.message_remainder}')
+
+print(f'Part 1: {sum(valids_2)}')
