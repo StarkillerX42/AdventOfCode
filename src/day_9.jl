@@ -82,7 +82,7 @@ function main()
     add_city([], distances, args["verbose"])
 
     @printf("Part 1: %d\n", part_1)
-    @printf("Part 1: %d\n", part_2)
+    @printf("Part 2: %d\n", part_2)
 end
 
 
