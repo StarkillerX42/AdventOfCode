@@ -1,10 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <sys/param.h>
-#include <stdlib.h>
-
-int verbose = 1;
 
 
 struct Path {
@@ -16,13 +14,19 @@ struct Path {
 };
 
 
-void get_instructions(int line_no, char fname[256], struct Path *path){
-    FILE *fp = fopen(fname, "r");
+void get_instructions(char *fname[256], struct Path *path, int verbose){
+    if (verbose >= 2) {
+        printf("Entering get_instructions for ID %d at path %s\n", path->id, *fname);
+    }
+    FILE *fp = fopen(*fname, "r");
     char line[5000];
     int line_iter = 0;
+    int line_no = path->id;
     while(line_iter <= line_no) {
         fscanf(fp, "%s\n", line);
-        // printf("%s\n", line);
+        if (verbose >= 2) {
+            printf("%s\n", line);
+        }
         line_iter++;
         // printf("Next line\n");
     }
@@ -35,7 +39,9 @@ void get_instructions(int line_no, char fname[256], struct Path *path){
             // printf("\n");
         }
     }
-    printf("Player %d takes %d steps\n", line_no, n_steps);
+    if (verbose >= 1) {
+        printf("Player %d takes %d steps\n", line_no, n_steps);
+    }
     path->n_steps = n_steps;
     char dirs[n_steps + 1];
     int positions[n_steps + 1][2];
@@ -98,7 +104,7 @@ int manhattan(int a, int b) {
 }
 
 
-int check_crossing(int a0[2], int a1[2], int b0[2], int b1[2]) {
+int check_crossing(int a0[2], int a1[2], int b0[2], int b1[2], int verbose) {
     /*This is also called a bounding box check*/
     
     int b_x_crosses_a = ((a0[0] <= b0[0]) && (a0[0] >= b1[0])) || ((a0[0] >= b0[0] && a0[0] <= b1[0]));
@@ -125,10 +131,10 @@ void print_full_path(struct Path path) {
 }
 
 
-int find_closest_crossing(struct Path path1, struct Path path2) {
+int find_closest_crossing(struct Path path1, struct Path path2, int verbose) {
     int closest_hit = 10000000;
     int i, j;
-    for (i=0; i<path2.n_steps;i++) {
+    for (i=0; i < path2.n_steps; i++) {
         if (verbose >= 2) {
             printf("i: %d\n", i);
         }
@@ -141,20 +147,20 @@ int find_closest_crossing(struct Path path1, struct Path path2) {
                     && (path1.directions[i] == 'L' || path1.directions[i] == 'R')) {
                     if (check_crossing(path1.positions[j],
                         path1.positions[j+1], path2.positions[i],
-                        path2.positions[i+1])) {
-                        // if (verbose) {
+                        path2.positions[i+1], verbose)) {
+                        if (verbose) {
                             printf("Collision at %d, %d\n", path2.positions[i][0], path1.positions[j][1]);
-                        // }
+                        }
                         closest_hit = MIN(closest_hit, manhattan(path2.positions[i][0], path1.positions[j][1]));
                     }
                 }
                 else if ((path2.directions[j] == 'L' || path2.directions[j] == 'R')
                     && (path1.directions[i] == 'U' || path1.directions[j])) {
                     if (check_crossing(path1.positions[j],
-                        path1.positions[j+1], path2.positions[i], path2.positions[i+1])) {
-                        // if (verbose) {
+                        path1.positions[j+1], path2.positions[i], path2.positions[i+1], verbose)) {
+                        if (verbose) {
                             printf("Collision at %d, %d\n", path1.positions[j][0], path2.positions[i][1]);
-                        // }
+                        }
                         closest_hit = MIN(closest_hit, manhattan(path1.positions[j][0], path2.positions[i][1]));
                     }
                 }
@@ -171,17 +177,37 @@ int find_closest_crossing(struct Path path1, struct Path path2) {
 }
 
 
-int main() {
-    printf("Verbosity: %d\n", verbose);
-    char file_path[256] = "dat/day_3.txt";
+int main(int argc, char *argv[]) { 
+    int verbose=0;
+    int test=0;
+    char **ptr;
+    for (ptr=argv; *ptr !=NULL ; ptr++) {
+        if (!strcmp(*ptr, "-v")){
+            verbose++;
+        }
+        if (!strcmp(*ptr, "-t")){
+            test = 1;
+        }
+    }
+    if (verbose >= 1) {
+        printf("Verbosity: %d\n", verbose);
+        printf("Testing: %d\n", test);
+    }
+    char *file_path[256];
+    if (test) {
+        *file_path = "dat/day_3_test.txt";
+    } else {
+        *file_path = "dat/day_3.txt";
+    }
+
     struct Path path1;
     struct Path path2;
     path1.id = 0;
     path2.id = 1;
-    get_instructions(path1.id, file_path, &path1);
-    get_instructions(path2.id, file_path, &path2);
+    get_instructions(file_path, &path1, verbose);
+    get_instructions(file_path, &path2, verbose);
     // print_full_path(path1);
-    int lowest = find_closest_crossing(path1, path2);
+    int lowest = find_closest_crossing(path1, path2, verbose);
     
     return 0;
 }
