@@ -214,6 +214,6 @@ dmypy.json
 cython_debug/
 
 # VS Code
-.vscode/
+/.vscode/
 
 demos/*
