@@ -13,7 +13,7 @@ from pathlib import Path
 @click.option("-t", "--test", is_flag=True)
 def main(verbose, test) -> int:
     proj = Path(__file__).absolute().parent.parent
-    day = re.search("\d+", Path(__file__).name)
+    day = re.search(r"\d+", Path(__file__).name)
     day = day.group(0) if day else ""
     day = day if day else ""
     if test:
@@ -30,9 +30,25 @@ def main(verbose, test) -> int:
         else:
             inputs = lines
 
-    part_1 = ""
+    cals = []
+    elf = []
+    for line in inputs:
+        if line == "":
+            cals.append(elf)
+            elf = []
+        else:
+            elf.append(int(line))
+    part_1 = 0
+    for elf in cals:
+        part_1 = max(np.sum(elf), part_1)
+
     print(f"Part 1: {part_1}")
-    part_2 = ""
+    sums = []
+    for elf in cals:
+        sums.append(np.sum(elf))
+    sums = np.array(sums)
+    sums.sort()
+    part_2 = sums[-3:].sum()
     print(f"Part 2: {part_2}")
 
     return 0
