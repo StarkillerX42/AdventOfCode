@@ -9,9 +9,10 @@ from pathlib import Path
 
 
 @click.command()
+@click.argument("inp", default=0)
 @click.option("-v", "--verbose", count=True)
 @click.option("-t", "--test", is_flag=True)
-def main(verbose, test) -> int:
+def main(inp, verbose, test) -> int:
     proj = Path(__file__).absolute().parent.parent
     day = re.search(r"\d+", Path(__file__).name)
     day = day.group(0) if day else ""
