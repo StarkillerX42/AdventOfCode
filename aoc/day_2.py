@@ -21,7 +21,7 @@ def main(inp, verbose, test) -> int:
         in_file = proj / f"dat/day_{day}_test.txt"
     else:
         in_file = proj / f"dat/day_{day}.txt"
-    if verbose:
+    if verbose >= 1:
         print(f"Advent of Code Day {day}")
 
     with in_file.open('r') as fil:
@@ -76,9 +76,42 @@ def main(inp, verbose, test) -> int:
                 case _:
                     inputs = lines
 
-    part_1 = ""
+    map = {"X": "A", "Y": "B", "Z": "C"}
+    values = {"A": 1, "B": 2, "C": 3}
+    win = {"A": "C", "B": "A", "C": "B"}
+    lose = {"A": "B", "B": "C", "C": "A"}
+    rps = []
+    for line in inputs:
+        rps.append(line.split())
+
+    part_1 = 0
+    part_2 = 0
+    for pair in rps:
+        part_1 += values[map[pair[1]]]
+        if win[map[pair[1]]] == pair[0]:  # Player wins
+            part_1 += 6
+        elif map[pair[1]] == pair[0]:  # Draw
+            part_1 += 3
+        elif lose[map[pair[1]]] == pair[0]:  # Lose
+            part_1 += 0
+        else:
+            print(f"Undefined part 1 pair: {pair}")
+
+        diff = 0
+        match pair[1]:
+            case "X":  # Must lose
+                diff += values[win[pair[0]]]
+            case "Y":  # Must Draw
+                diff += values[pair[0]]
+                diff += 3
+            case "Z":  # Must win
+                diff += values[lose[pair[0]]]
+                diff += 6
+        if verbose >= 1:
+            print("-".join(pair), diff)
+        part_2 += diff
+
     print(f"Part 1: {part_1}")
-    part_2 = ""
     print(f"Part 2: {part_2}")
 
     return 0
