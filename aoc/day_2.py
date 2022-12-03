@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
 import re
-import click
 import asyncio
 
 import numpy as np
+import asyncclick as click
 
 from pathlib import Path
 from typing import Union
 
 
-async def from_file(file_name: union[str, path], format, test: bool = false):
+async def from_file(file_name: Union[str, Path], format, inp):
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
     with in_file.open('r') as fil:
@@ -61,17 +61,17 @@ async def from_file(file_name: union[str, path], format, test: bool = false):
                     inputs = inputs == "1"
                 case "unknown":
                     inputs = lines
-                case _:
-                    inputs = format
+                case "int":
+                    inputs = inp
 
     return inputs
 
 
 @click.command()
-@click.argument("format", default=0)
+@click.argument("inp", default=0)
 @click.option("-v", "--verbose", count=True)
 @click.option("-t", "--test", is_flag=True)
-async def main(format, verbose, test) -> int:
+async def main(inp, verbose, test) -> int:
     proj = Path(__file__).absolute().parent.parent
     day = re.search(r"\d+", Path(__file__).name)
     day = day.group(0) if day else ""
@@ -82,8 +82,10 @@ async def main(format, verbose, test) -> int:
         in_file = proj / f"dat/day_{day}.txt"
     if verbose >= 1:
         print(f"Advent of Code Day {day}")
-
-    inputs = asyncio.run(from_file(in_file, format, test))
+    format = "unknown"
+    inputs = await asyncio.create_task(from_file(in_file, format, inp))
+    if verbose >= 2:
+        print(inputs)
 
     map = {"X": "A", "Y": "B", "Z": "C"}
     values = {"A": 1, "B": 2, "C": 3}
