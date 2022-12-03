@@ -216,5 +216,9 @@ cython_debug/
 bin/**
 
 .vscode/
+/.idea/
+/.trunk/
+/__pycache__/
 
 demos/*
+test_log.txt

@@ -1,22 +1,22 @@
 #!/usr/bin/env julia
 
-using Printf
-using ArgParse
-using Dates
-using JSON
-using ProgressBars
-using Statistics
-using Combinatorics
+using printf
+using argparse
+using dates
+using json
+using progressbars
+using statistics
+using combinatorics
 
 function parse_cmdline()
-    parser = ArgParseSettings()
+    parser = argparsesettings()
 
     @add_arg_table! parser begin
         "-v", "--verbose"
-            help="Verbose debugging"
+            help="verbose debugging"
             action = :count_invocations
         "-t", "--test"
-            help="Use test file"
+            help="use test file"
             action = :store_true
     end
     return parse_args(parser)
