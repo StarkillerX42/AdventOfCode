@@ -2,6 +2,7 @@
 
 import re
 import asyncio
+import copy
 
 import numpy as np
 import asyncclick as click
@@ -63,7 +64,7 @@ async def aoc_from_file(file_name: Union[str, Path], form, inp):
                     for line in lines:
                         inputs.append(list(line))
                     inputs = inputs == "1"
-                case "single string":
+                case "unknown":
                     inputs = lines
                 case "int":
                     inputs = inp
@@ -89,12 +90,44 @@ async def main(inp, verbose, test) -> int:
     if verbose:
         print(f"Advent of Code Day {day}")
 
-    form = "single string"
+    form = "unknown"
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
+    for i, line in enumerate(inputs):
+        try:
+            n_lines = np.array(line.split()).astype(int).shape[0]
+            i_lines = i
+            break
+        except ValueError:
+            pass
 
+    stacks = []
+    for i in range(n_lines):
+        rack = []
+        for j in range(i_lines):
+            if inputs[j][i * 4 + 1] != " ":
+                rack.append(inputs[j][i * 4 + 1])
+        stacks.append(rack)
+
+    stacks_1 = copy.deepcopy(stacks)
+    stacks_2 = copy.deepcopy(stacks)
+
+    for i in range(i_lines + 2, len(inputs)):
+        count, src, dest = np.array(inputs[i].split()[1::2]).astype(int)
+        tmp = []
+        for j in range(count):
+            stacks_1[dest - 1].insert(0, stacks_1[src - 1].pop(0))
+            tmp.append(stacks_2[src - 1].pop(0))
+        for x in reversed(tmp):
+            stacks_2[dest - 1].insert(0, x)
     part_1 = ""
+    for stack in stacks_1:
+        part_1 += stack[0]
+
     print(f"Part 1: {part_1}")
+
     part_2 = ""
+    for stack in stacks_2:
+        part_2 += stack[0]
     print(f"Part 2: {part_2}")
 
     return 0

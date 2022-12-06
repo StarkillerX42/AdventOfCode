@@ -63,7 +63,7 @@ async def aoc_from_file(file_name: Union[str, Path], form, inp):
                     for line in lines:
                         inputs.append(list(line))
                     inputs = inputs == "1"
-                case "single string":
+                case "unknown":
                     inputs = lines
                 case "int":
                     inputs = inp
@@ -89,12 +89,30 @@ async def main(inp, verbose, test) -> int:
     if verbose:
         print(f"Advent of Code Day {day}")
 
-    form = "single string"
+    form = "unknown"
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
+    part_1 = 0
+    part_2 = 0
+    for i, char in enumerate(inputs):
+        low = max(0, i - 3)
+        low_2 = max(0, i - 13)
+        subset = inputs[low: i + 1]
+        subset_2 = inputs[low_2: i + 1]
+        # print(subset)
+        is_match_1 = True
+        is_match_2 = True
+        for char2 in subset:
+            if subset.count(char2) > 1 or len(subset) != 4:
+                is_match_1 = False
+        for char2 in subset_2:
+            if subset_2.count(char2) > 1 or len(subset_2) != 14:
+                is_match_2 = False
+        if is_match_1 and part_1 == 0:
+            part_1 = i + 1
+        if is_match_2 and part_2 == 0:
+            part_2 = i + 1
 
-    part_1 = ""
     print(f"Part 1: {part_1}")
-    part_2 = ""
     print(f"Part 2: {part_2}")
 
     return 0
