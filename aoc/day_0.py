@@ -46,6 +46,10 @@ async def aoc_from_file(file_name: Union[str, Path], form, inp):
                     inputs = []
                     for line in lines:
                         inputs.append(line.split(","))
+                case "space paired lines":
+                    inputs = []
+                    for line in lines:
+                        inputs.append(line.split())
                 case "comma separated":
                     inputs = line.split(",")
                 case "comma grid":
