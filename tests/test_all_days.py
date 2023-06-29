@@ -6,7 +6,7 @@ import subprocess as sub
 from pathlib import Path
 from astropy.time import Time
 
-
+@pytest.mark.all
 def test_all_days():
     proj_dir = Path(__file__).absolute().parent.parent
     test_log = Path("./test_log.txt")

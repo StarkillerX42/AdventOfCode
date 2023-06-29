@@ -8,32 +8,32 @@ import numpy as np
 import asyncclick as click
 
 from pathlib import Path
-from typing import Union
 from pprint import pprint
 
 
-def get_neighbors(point: np.ndarray, grid: np.ndarray, explored: np.ndarray,
-                  frontier) -> np.ndarray:
+def get_neighbors(
+    point: np.ndarray, grid: np.ndarray, explored: np.ndarray, frontier
+) -> list[tuple, ...]:
     neighbors = point + np.array([[1, 0], [-1, 0], [0, 1], [0, -1]])
     is_good = np.ones((4), dtype=bool)
     for i, neighbor in enumerate(neighbors):
-        if (np.any(neighbor < 0)
+        if (
+            np.any(neighbor < 0)
             or neighbor[0] >= grid.shape[0]
-                or neighbor[1] >= grid.shape[1]):
+            or neighbor[1] >= grid.shape[1]
+        ):
             is_good[i] = False
         else:
             delta_h = grid[*neighbor] - grid[*point]
-            if (delta_h > 1 or delta_h < -3
-                    or explored[*neighbor]):
+            if delta_h > 1 or delta_h < -3 or explored[*neighbor]:
                 is_good[i] = False
+    return [tuple(v) for v in neighbors[is_good]]
 
-    return neighbors[is_good]
 
-
-async def aoc_from_file(file_name: Union[str, Path], form, inp):
+async def aoc_from_file(file_name: str | Path, form, inp):
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
-    with in_file.open('r') as fil:
+    with in_file.open("r") as fil:
         lines = fil.read().splitlines()  # there is no "\n" in these
         match form:
             case "newline ints":
@@ -122,45 +122,70 @@ async def main(inp, verbose, test) -> int:
     efforts = np.ones(grid.shape, dtype=int) * np.inf
     for i, line in enumerate(inputs):
         for j, char in enumerate(line):
-            grid[j, i] = ord(char) - ord('a') + 1
+            grid[j, i] = ord(char) - ord("a") + 1
 
-    grid[grid == ord('S') - ord('a') + 1] = 0
-    grid[grid == ord('E') - ord('a') + 1] = ord('z') - ord('a') + 2
+    if verbose >= 2:
+        print(grid.T)
+    grid[grid == ord("S") - ord("a") + 1] = 0
+    grid[grid == ord("E") - ord("a") + 1] = ord("z") - ord("a") + 2
     efforts[grid == 0] = 0
     explored = efforts == 0
+    efforts2 = efforts.copy()
+    explored2 = explored.copy()
     start = np.where(grid == 0)
-    start = np.array([start[0][0], start[1][0]])
-    dest = np.where(grid == ord('z') - ord('a') + 2)
-    dest = np.array([dest[0][0], dest[1][0]])
+    start = (start[0][0], start[1][0])
+    dest = np.where(grid == ord("z") - ord("a") + 2)
+    dest = (dest[0][0], dest[1][0])
+    if verbose >= 2:
+        print(grid.T)
     if verbose:
         print(f"Starting at {start}, looking for {dest}")
-    frontier = [start]
+    frontier = {start}
     pbar = tqdm.tqdm(total=grid.size)
     count = 0
-    points = []
     while np.isinf(efforts[*dest]) and count < 100000:
-        point = frontier.pop(0)
-        points.append(explored[*point])
+        if verbose >= 1:
+            print(len(frontier))
+        point = frontier.pop()
         neighbors = get_neighbors(point, grid, explored, frontier)
         for neighbor in neighbors:
-            if explored[*neighbor]:
-                continue
             if efforts[*neighbor] > efforts[*point] + 1:
-                print("updating effort")
+                if verbose >= 2:
+                    print(efforts.T)
                 efforts[*neighbor] = efforts[*point] + 1
             if not explored[*neighbor]:
-                frontier.append(neighbor)
+                frontier.add(neighbor)
         explored[*point] = True
         pbar.update()
         count += 1
-
+    pbar.close()
     efforts = efforts.astype(int)
-    points.sort()
-    # print(frontier, len(frontier))
     part_1 = efforts[*dest]
 
     print(f"Part 1: {part_1}")
-    part_2 = ""
+
+    # This is just a guess of what I'd need to copy
+    frontier = {start}
+    pbar = tqdm.tqdm(total=grid.size)
+    count = 0
+    while np.isinf(efforts2[*dest]) and count < 100000:
+        if verbose >= 1:
+            print(len(frontier))
+        point = frontier.pop()
+        neighbors = get_neighbors(point, grid, explored2, frontier)
+        for neighbor in neighbors:
+            if efforts2[*neighbor] > efforts2[*point] + grid[*neighbor] - grid[*point]:
+                if verbose >= 2:
+                    print(efforts2.T)
+                efforts2[*neighbor] = efforts2[*point] + grid[*neighbor] - grid[*point]
+            if not explored2[*neighbor]:
+                frontier.add(neighbor)
+        explored2[*point] = True
+        pbar.update()
+        count += 1
+    pbar.close()
+    efforts2 = efforts2.astype(int)
+    part_2 = efforts2[*dest]
     print(f"Part 2: {part_2}")
 
     return 0
