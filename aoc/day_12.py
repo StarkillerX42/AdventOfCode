@@ -11,9 +11,7 @@ from pathlib import Path
 from pprint import pprint
 
 
-def get_neighbors(
-    point: np.ndarray, grid: np.ndarray, explored: np.ndarray, frontier
-) -> list[tuple, ...]:
+def get_neighbors(point: np.ndarray, grid: np.ndarray) -> list[tuple, ...]:
     neighbors = point + np.array([[1, 0], [-1, 0], [0, 1], [0, -1]])
     is_good = np.ones((4), dtype=bool)
     for i, neighbor in enumerate(neighbors):
@@ -25,13 +23,13 @@ def get_neighbors(
             is_good[i] = False
         else:
             delta_h = grid[*neighbor] - grid[*point]
-            if delta_h > 1 or delta_h < -3 or explored[*neighbor]:
+            if delta_h > 1:
                 is_good[i] = False
     return [tuple(v) for v in neighbors[is_good]]
 
 
 async def aoc_from_file(file_name: str | Path, form, inp):
-    in_file = Path(file_name) if isinstance(file_name, str) else file_name
+    in_file = Path(file_name)
 
     with in_file.open("r") as fil:
         lines = fil.read().splitlines()  # there is no "\n" in these
@@ -119,7 +117,7 @@ async def main(inp, verbose, test) -> int:
     form = "single string"
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
     grid = np.zeros((len(inputs[0]), len(inputs)), dtype=int)
-    efforts = np.ones(grid.shape, dtype=int) * np.inf
+    efforts = np.ones(grid.shape, dtype=int) * 999999
     for i, line in enumerate(inputs):
         for j, char in enumerate(line):
             grid[j, i] = ord(char) - ord("a") + 1
@@ -130,8 +128,6 @@ async def main(inp, verbose, test) -> int:
     grid[grid == ord("E") - ord("a") + 1] = ord("z") - ord("a") + 2
     efforts[grid == 0] = 0
     explored = efforts == 0
-    efforts2 = efforts.copy()
-    explored2 = explored.copy()
     start = np.where(grid == 0)
     start = (start[0][0], start[1][0])
     dest = np.where(grid == ord("z") - ord("a") + 2)
@@ -143,49 +139,33 @@ async def main(inp, verbose, test) -> int:
     frontier = {start}
     pbar = tqdm.tqdm(total=grid.size)
     count = 0
-    while np.isinf(efforts[*dest]) and count < 100000:
+    while len(frontier) > 0 and count < 100000:
         if verbose >= 1:
             print(len(frontier))
         point = frontier.pop()
-        neighbors = get_neighbors(point, grid, explored, frontier)
+        if not explored[*point]:
+            explored[*point] = True
+            pbar.update()
+
+        neighbors = get_neighbors(point, grid)
         for neighbor in neighbors:
             if efforts[*neighbor] > efforts[*point] + 1:
-                if verbose >= 2:
+                if verbose >= 3:
                     print(efforts.T)
                 efforts[*neighbor] = efforts[*point] + 1
-            if not explored[*neighbor]:
                 frontier.add(neighbor)
-        explored[*point] = True
-        pbar.update()
+                for n in get_neighbors(neighbor, grid):
+                    explored[*n] = False
         count += 1
+
     pbar.close()
     efforts = efforts.astype(int)
     part_1 = efforts[*dest]
+    if verbose >= 2:
+        print(efforts.T)
 
     print(f"Part 1: {part_1}")
-
-    # This is just a guess of what I'd need to copy
-    frontier = {start}
-    pbar = tqdm.tqdm(total=grid.size)
-    count = 0
-    while np.isinf(efforts2[*dest]) and count < 100000:
-        if verbose >= 1:
-            print(len(frontier))
-        point = frontier.pop()
-        neighbors = get_neighbors(point, grid, explored2, frontier)
-        for neighbor in neighbors:
-            if efforts2[*neighbor] > efforts2[*point] + grid[*neighbor] - grid[*point]:
-                if verbose >= 2:
-                    print(efforts2.T)
-                efforts2[*neighbor] = efforts2[*point] + grid[*neighbor] - grid[*point]
-            if not explored2[*neighbor]:
-                frontier.add(neighbor)
-        explored2[*point] = True
-        pbar.update()
-        count += 1
-    pbar.close()
-    efforts2 = efforts2.astype(int)
-    part_2 = efforts2[*dest]
+    part_2 = ""
     print(f"Part 2: {part_2}")
 
     return 0
