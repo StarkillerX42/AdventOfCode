@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-import re
 import asyncio
-
-import numpy as np
-import asyncclick as click
-
+import re
 from pathlib import Path
 from pprint import pprint
+
+import asyncclick as click
+import numpy as np
 from rich.progress import track
 
 
