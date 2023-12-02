@@ -7,15 +7,14 @@ import numpy as np
 import asyncclick as click
 
 from pathlib import Path
-from typing import Union
 from pprint import pprint
 from rich.progress import track
 
 
-async def aoc_from_file(file_name: Union[str, Path], form, inp):
+async def aoc_from_file(file_name: str | Path, form, inp):
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
-    with in_file.open('r') as fil:
+    with in_file.open("r") as fil:
         lines = fil.read().splitlines()  # there is no "\n" in these
         match form:
             case "newline ints":
@@ -104,7 +103,7 @@ async def main(inp, verbose, test) -> int:
 
     form = "newline strings"
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
-    
+
     # part_1 = 0
     nums = re.compile(r"\d")
     # for line in inputs:
@@ -112,7 +111,7 @@ async def main(inp, verbose, test) -> int:
     #     part_1 += int(line_nums[0] + line_nums[-1])
 
     # print(f"Part 1: {part_1}")
-    
+
     num_map = {
         1: "one",
         2: "two",
@@ -134,17 +133,17 @@ async def main(inp, verbose, test) -> int:
             if left or nums.search(c) is not None:
                 break
             for n, name in num_map.items():
-                if name == line[i:i + len(name)]:
+                if name == line[i : i + len(name)]:
                     left = True
                     if verbose >= 2:
                         print(line)
-                    line = line[:i] + f"{n:.0f}" + line[i + len(name):]
+                    line = line[:i] + f"{n:.0f}" + line[i + len(name) :]
                     if verbose >= 1:
                         print(f"Found name: {name} for left")
-                        if verbose >=2:
+                        if verbose >= 2:
                             print(line)
                     break
-                
+
         for i, c in enumerate(line[::-1]):
             if right:
                 break
@@ -159,20 +158,22 @@ async def main(inp, verbose, test) -> int:
                     right = True
                     if verbose >= 2:
                         print(line)
-                    line = line[:len(line) + low] + f"{n:.0f}" + line[len(line) + high:]
+                    line = (
+                        line[: len(line) + low] + f"{n:.0f}" + line[len(line) + high :]
+                    )
                     if verbose >= 1:
                         print(f"Found name: {name} for right")
                         if verbose >= 2:
                             print(line)
                     break
-                
+
         line_nums = nums.findall(line)
         res = int(line_nums[0] + line_nums[-1])
         if verbose >= 1:
             print(line)
             print(res)
         part_2 += res
-        
+
     print(f"Part 2: {part_2:.0f}")
 
     return 0

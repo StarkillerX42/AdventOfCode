@@ -222,3 +222,5 @@ bin/**
 /demos/
 
 test_log.txt
+
+.python_version

@@ -9,12 +9,13 @@ import numpy as np
 import asyncclick as click
 
 from pathlib import Path
-from typing import Union
 from pprint import pprint
 from rich.progress import track
 
 
-async def aoc_from_file(file_name: str|Path, form: str, inp: int, custom_function=None):
+async def aoc_from_file(
+    file_name: str | Path, form: str, inp: int, custom_function=None
+):
     """Reads an Advent of Code input file according to the given format
 
     Args:
@@ -34,7 +35,7 @@ async def aoc_from_file(file_name: str|Path, form: str, inp: int, custom_functio
     """
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
-    with in_file.open('r') as fil:
+    with in_file.open("r") as fil:
         lines = fil.read().splitlines()  # there is no "\n" in these
         match form:
             case "newline ints":
@@ -99,11 +100,36 @@ async def aoc_from_file(file_name: str|Path, form: str, inp: int, custom_functio
                 if custom_function is not None:
                     inputs = custom_function(lines)
                 else:
-                    raise ValueError(f"Custom function undefined")
+                    raise ValueError("Custom function undefined")
             case _:
                 inputs = format
 
     return inputs
+
+
+def read_games(lines: list[str]) -> list[tuple[int]]:
+    games = []
+    gameNum = re.compile(r"(?<=Game )\d+")
+    colREs = (
+        re.compile(r"\d+(?= red)"),
+        re.compile(r"\d+(?= green)"),
+        re.compile(r"\d+(?= blue)"),
+    )
+    for i, line in enumerate(lines):
+        n = int(gameNum.search(line).group())
+        if i + 1 != n:
+            raise ValueError(f"i + 1 != n; {i}, {n}")
+        rounds = line.split(":")[-1].split(";")
+        counts = []
+        for round in rounds:
+            round_counts = [0] * 3
+            for i, cRE in enumerate(colREs):
+                f = cRE.search(round)
+                if f is not None:
+                    round_counts[i] = int(f.group())
+            counts.append(round_counts)
+        games.append(np.array(counts))
+    return games
 
 
 @click.command()
@@ -122,12 +148,22 @@ async def main(inp, verbose, test) -> int:
     if verbose:
         print(f"Advent of Code Day {day}")
 
-    form = "single string"
-    inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
-
-    part_1 = ""
+    form = "custom"
+    inputs = await asyncio.create_task(
+        aoc_from_file(in_file, form, inp, custom_function=read_games)
+    )
+    if verbose >= 1:
+        pprint(inputs)
+    part_1_lim = np.array([12, 13, 14])
+    part_1 = 0
+    for i, game in enumerate(inputs):
+        if np.all(part_1_lim >= game):
+            part_1 += i + 1
     print(f"Part 1: {part_1}")
-    part_2 = ""
+
+    part_2 = 0
+    for i, game in enumerate(inputs):
+        part_2 += np.prod(np.max(game, axis=0))
     print(f"Part 2: {part_2}")
 
     return 0

@@ -5,6 +5,7 @@ description = "My Advent of Code solutions."
 authors = ["Dylan Gatlin <dgatlin5@gmail.com>"]
 readme = "README.md"
 
+
 [tool.poetry.dependencies]
 python = "^3.12"
 numpy = "^1.26"
@@ -15,8 +16,19 @@ rich = "^13.7.0"
 PyYAML = "^6.0.1"
 anyio = "^4.1.0"
 ipython = "^8.18.1"
+black = "^23.11.0"
+flake8 = "^6.1.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.isort]
+profile = "black"
+
+
+[tool.black]
+target-version=["py312"]
+line-length = 88

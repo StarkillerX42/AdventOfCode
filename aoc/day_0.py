@@ -9,12 +9,13 @@ import numpy as np
 import asyncclick as click
 
 from pathlib import Path
-from typing import Union
 from pprint import pprint
 from rich.progress import track
 
 
-async def aoc_from_file(file_name: str|Path, form: str, inp: int, custom_function=None):
+async def aoc_from_file(
+    file_name: str | Path, form: str, inp: int, custom_function=None
+):
     """Reads an Advent of Code input file according to the given format
 
     Args:
@@ -34,7 +35,7 @@ async def aoc_from_file(file_name: str|Path, form: str, inp: int, custom_functio
     """
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
-    with in_file.open('r') as fil:
+    with in_file.open("r") as fil:
         lines = fil.read().splitlines()  # there is no "\n" in these
         match form:
             case "newline ints":
@@ -99,7 +100,7 @@ async def aoc_from_file(file_name: str|Path, form: str, inp: int, custom_functio
                 if custom_function is not None:
                     inputs = custom_function(lines)
                 else:
-                    raise ValueError(f"Custom function undefined")
+                    raise ValueError("Custom function undefined")
             case _:
                 inputs = format
 
