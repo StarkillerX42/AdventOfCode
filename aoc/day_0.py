@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import tqdm
 import asyncio
 
 import numpy as np
@@ -10,6 +9,7 @@ import asyncclick as click
 from pathlib import Path
 from typing import Union
 from pprint import pprint
+from rich.progress import track
 
 
 async def aoc_from_file(file_name: Union[str, Path], form, inp):

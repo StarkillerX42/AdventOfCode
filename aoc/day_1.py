@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import re
-import tqdm
 import asyncio
 
 import numpy as np
@@ -10,6 +9,7 @@ import asyncclick as click
 from pathlib import Path
 from typing import Union
 from pprint import pprint
+from rich.progress import track
 
 
 async def aoc_from_file(file_name: Union[str, Path], form, inp):
@@ -32,7 +32,7 @@ async def aoc_from_file(file_name: Union[str, Path], form, inp):
                         chunk = []
                     else:
                         chunk.append(int(line))
-            case "newline strings":
+            case "newline string blocks":
                 inputs = []
                 chunk = []
                 for line in lines:
@@ -42,6 +42,10 @@ async def aoc_from_file(file_name: Union[str, Path], form, inp):
                     else:
                         chunk.append(line)
                 inputs.append(chunk)
+            case "newline strings":
+                inputs = []
+                for line in lines:
+                    inputs.append(line)
             case "comma paired lines":
                 inputs = []
                 for line in lines:
@@ -98,13 +102,78 @@ async def main(inp, verbose, test) -> int:
     if verbose:
         print(f"Advent of Code Day {day}")
 
-    form = "single string"
+    form = "newline strings"
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
+    
+    # part_1 = 0
+    nums = re.compile(r"\d")
+    # for line in inputs:
+    #     line_nums = nums.findall(line)
+    #     part_1 += int(line_nums[0] + line_nums[-1])
 
-    part_1 = ""
-    print(f"Part 1: {part_1}")
-    part_2 = ""
-    print(f"Part 2: {part_2}")
+    # print(f"Part 1: {part_1}")
+    
+    num_map = {
+        1: "one",
+        2: "two",
+        3: "three",
+        4: "four",
+        5: "five",
+        6: "six",
+        7: "seven",
+        8: "eight",
+        9: "nine",
+    }
+    part_2: int = 0
+    for line in inputs:
+        if verbose >= 1:
+            print(line)
+        left = False
+        right = False
+        for i, c in enumerate(line):
+            if left or nums.search(c) is not None:
+                break
+            for n, name in num_map.items():
+                if name == line[i:i + len(name)]:
+                    left = True
+                    if verbose >= 2:
+                        print(line)
+                    line = line[:i] + f"{n:.0f}" + line[i + len(name):]
+                    if verbose >= 1:
+                        print(f"Found name: {name} for left")
+                        if verbose >=2:
+                            print(line)
+                    break
+                
+        for i, c in enumerate(line[::-1]):
+            if right:
+                break
+            for n, name in num_map.items():
+                low = -i - 1
+                high = min(0, low + len(name))
+                if high == 0:
+                    slice = line[low:]
+                else:
+                    slice = line[low:high]
+                if name == slice:
+                    right = True
+                    if verbose >= 2:
+                        print(line)
+                    line = line[:len(line) + low] + f"{n:.0f}" + line[len(line) + high:]
+                    if verbose >= 1:
+                        print(f"Found name: {name} for right")
+                        if verbose >= 2:
+                            print(line)
+                    break
+                
+        line_nums = nums.findall(line)
+        res = int(line_nums[0] + line_nums[-1])
+        if verbose >= 1:
+            print(line)
+            print(res)
+        part_2 += res
+        
+    print(f"Part 2: {part_2:.0f}")
 
     return 0
 

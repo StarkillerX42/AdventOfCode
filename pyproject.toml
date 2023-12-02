@@ -13,6 +13,8 @@ asyncclick = "^8.1.3.4"
 astropy = "^6.0.0"
 rich = "^13.7.0"
 PyYAML = "^6.0.1"
+anyio = "^4.1.0"
+ipython = "^8.18.1"
 
 
 [build-system]
