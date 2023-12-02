@@ -140,7 +140,7 @@ async def main(inp, verbose, test) -> int:
     pbar = tqdm.tqdm(total=grid.size)
     count = 0
     while len(frontier) > 0 and count < 100000:
-        if verbose >= 1:
+        if verbose >= 3:
             print(len(frontier))
         point = frontier.pop()
         if not explored[*point]:
@@ -148,6 +148,8 @@ async def main(inp, verbose, test) -> int:
             pbar.update()
 
         neighbors = get_neighbors(point, grid)
+        if len(neighbors) != 4:
+            print(f"Neighbors: {neighbors}")
         for neighbor in neighbors:
             if efforts[*neighbor] > efforts[*point] + 1:
                 if verbose >= 3:
@@ -163,6 +165,10 @@ async def main(inp, verbose, test) -> int:
     part_1 = efforts[*dest]
     if verbose >= 2:
         print(efforts.T)
+        with open("day_12_out.txt", "w") as fil:
+            for row in efforts.T:
+                fil.write(", ".join([f"{v:>3.0f}" for v in row]))
+                fil.write("\n")
 
     print(f"Part 1: {part_1}")
     part_2 = ""
