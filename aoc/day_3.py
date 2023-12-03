@@ -35,7 +35,8 @@ async def aoc_from_file(
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
     with in_file.open("r") as fil:
-        lines = fil.read().splitlines()  # there is no "\n" in these
+        txt = fil.read()
+        lines = txt.splitlines()  # there is no "\n" in these
         match form:
             case "newline ints":
                 inputs = []
@@ -86,7 +87,7 @@ async def aoc_from_file(
                 for line in lines:
                     inputs.append(list(line))
                 inputs = np.array(inputs) == "1"
-            case "int grid":
+            case "grid":
                 inputs = []
                 for line in lines:
                     inputs.append(list(line))
@@ -101,10 +102,19 @@ async def aoc_from_file(
                 else:
                     raise ValueError("Custom function undefined")
             case _:
-                inputs = format
+                inputs = txt
 
     return inputs
 
+
+def get_neighbors_diag(i: int, j: int, arr: np.ndarray) -> list[list[int]]:
+    neighbors = []
+    for i2 in range(i - 1, i + 2):
+        for j2 in range(j - 1, j + 2):
+            if i2 >= 0 and i2 < arr.shape[0] and j2 >= 0 and j2 < arr.shape[1]:
+                if i != i2 or j != j2:
+                    neighbors.append([i2, j2])
+    return np.array(neighbors)
 
 @click.command()
 @click.argument("inp", default=0)
@@ -122,10 +132,43 @@ async def main(inp, verbose, test) -> int:
     if verbose:
         print(f"Advent of Code Day {day}")
 
-    form = "single string"
+    form = "grid"
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
+    inputs_raw = await asyncio.create_task(aoc_from_file(in_file, "none", inp))
 
-    part_1 = ""
+    part_1 = 0
+    usedNums = []
+    for i, row in enumerate(inputs):
+        buf = ""
+        has_mark = False
+        for j, c in enumerate(row):
+            if c.isnumeric():
+                neighbors = get_neighbors_diag(i, j, inputs)
+                ns = list((inputs[*neighbor] for neighbor in neighbors))
+                for n in ns:
+                    if not n.isnumeric() and n != ".":
+                        has_mark = True
+                buf += c
+            elif not c.isnumeric() and buf != "":
+                if has_mark:
+                    if verbose >= 1:
+                        print(f"Adding {buf}")
+                    if buf not in inputs_raw:  # Check that number isn't concatenated
+                        raise ValueErorr(f"{buf} not a valid number at {(i, j)}")
+                    usedNums.append(buf)
+                    part_1 += int(buf)
+                buf = ""
+                has_mark = False
+
+    usedI = 0
+    for n in re.finditer(r"\d+", inputs_raw):
+        if n.group() != usedNums[usedI]:
+            print(n.group(), " missing")
+        else:
+            usedI += 1
+    print(len(list(re.finditer(r"\d+", inputs_raw))), len(usedNums))
+    if verbose >= 1:
+        print(inputs)
     print(f"Part 1: {part_1}")
     part_2 = ""
     print(f"Part 2: {part_2}")
