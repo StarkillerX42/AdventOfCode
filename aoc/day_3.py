@@ -108,13 +108,13 @@ async def aoc_from_file(
 
 
 def get_neighbors_diag(i: int, j: int, arr: np.ndarray) -> list[list[int]]:
-    neighbors = []
-    for i2 in range(i - 1, i + 2):
-        for j2 in range(j - 1, j + 2):
-            if i2 >= 0 and i2 < arr.shape[0] and j2 >= 0 and j2 < arr.shape[1]:
-                if i != i2 or j != j2:
-                    neighbors.append([i2, j2])
-    return np.array(neighbors)
+    arr = np.array(arr)
+    ilo = max(0, i - 1)
+    ihi = min(i + 1, arr.shape[0])
+    jlo = max(0, j - 1)
+    jhi = min(j + 1, arr.shape[1])
+    neighbors = arr[ilo: ihi + 1, jlo: jhi + 1]
+    return neighbors
 
 @click.command()
 @click.argument("inp", default=0)
@@ -143,9 +143,8 @@ async def main(inp, verbose, test) -> int:
         has_mark = False
         for j, c in enumerate(row):
             if c.isnumeric():
-                neighbors = get_neighbors_diag(i, j, inputs)
-                ns = list((inputs[*neighbor] for neighbor in neighbors))
-                for n in ns:
+                neighbors = get_neighbors_diag(i, j, inputs).flatten()
+                for n in neighbors:
                     if not n.isnumeric() and n != ".":
                         has_mark = True
                 buf += c
