@@ -113,8 +113,27 @@ def get_neighbors_diag(i: int, j: int, arr: np.ndarray) -> list[list[int]]:
     ihi = min(i + 1, arr.shape[0])
     jlo = max(0, j - 1)
     jhi = min(j + 1, arr.shape[1])
-    neighbors = arr[ilo: ihi + 1, jlo: jhi + 1]
+    neighbors = arr[ilo : ihi + 1, jlo : jhi + 1]
     return neighbors
+
+
+def get_window(reMatch: re.Match, lineLength: int, nLines=None) -> np.ndarray[str]:
+    if nLines is None:
+        nLines = lineLength
+    start, stop = reMatch.span()
+    istart = start // lineLength
+    iend = start // lineLength + 1
+    jstart = start % lineLength
+    jend = stop % lineLength
+    if jend == 0:
+        jend = lineLength
+    iwstart = max(0, istart - 1)
+    jwstart = max(0, jstart - 1)
+    iwend = min(nLines, iend + 1)
+    jwend = min(lineLength, jend + 1)
+
+    return istart, iend, jstart, jend, iwstart, jwstart, iwend, jwend
+
 
 @click.command()
 @click.argument("inp", default=0)
@@ -136,40 +155,74 @@ async def main(inp, verbose, test) -> int:
     inputs = await asyncio.create_task(aoc_from_file(in_file, form, inp))
     inputs_raw = await asyncio.create_task(aoc_from_file(in_file, "none", inp))
 
+    numRE = re.compile(r"\d+")
+
     part_1 = 0
     usedNums = []
-    for i, row in enumerate(inputs):
-        buf = ""
-        has_mark = False
-        for j, c in enumerate(row):
-            if c.isnumeric():
-                neighbors = get_neighbors_diag(i, j, inputs).flatten()
-                for n in neighbors:
-                    if not n.isnumeric() and n != ".":
-                        has_mark = True
-                buf += c
-            elif not c.isnumeric() and buf != "":
-                if has_mark:
-                    if verbose >= 1:
-                        print(f"Adding {buf}")
-                    if buf not in inputs_raw:  # Check that number isn't concatenated
-                        raise ValueErorr(f"{buf} not a valid number at {(i, j)}")
-                    usedNums.append(buf)
-                    part_1 += int(buf)
-                buf = ""
-                has_mark = False
+    nLines, lineLength = inputs.shape
+    lineLength += 1
+    for num in numRE.finditer(inputs_raw):
+        istart, iend, jstart, jend, iwstart, jwstart, iwend, jwend = get_window(
+            num, lineLength=lineLength, nLines=nLines
+        )
+        # print(num.group(), start, stop, istart, ":", iend, jstart, ":", jend)
+        if verbose >= 2:
+            print(
+                num.group(),
+                iwstart,
+                ":",
+                iwend,
+                jwstart,
+                ":",
+                jwend,
+                "\n",
+                inputs[iwstart:iwend, jwstart:jwend],
+            )
+        for c in inputs[iwstart:iwend, jwstart:jwend].flatten():
+            if not c.isnumeric() and c != ".":
+                # print(c, end=", ")
+                n = "".join(inputs[istart, jstart:jend])
+                # print(n, num.group())
+                usedNums.append(n)
+                part_1 += int(n)
+                break
 
-    usedI = 0
-    for n in re.finditer(r"\d+", inputs_raw):
-        if n.group() != usedNums[usedI]:
-            print(n.group(), " missing")
-        else:
-            usedI += 1
-    print(len(list(re.finditer(r"\d+", inputs_raw))), len(usedNums))
+    if verbose >= 1:
+        p = "\n".join(usedNums)
+        print(f"{p}")
+
     if verbose >= 1:
         print(inputs)
     print(f"Part 1: {part_1}")
-    part_2 = ""
+    part_2 = 0
+
+    for star in re.finditer(r"\*", inputs_raw):
+        istart, iend, jstart, jend, iwstart, jwstart, iwend, jwend = get_window(
+            star, lineLength=lineLength, nLines=nLines
+        )
+        # print(inputs[iwstart:iwend, jwstart:jwend])
+        prodParts = []
+        for i, line in enumerate(inputs[iwstart:iwend, jwstart:jwend]):
+            last = ""
+            for j, c in enumerate(line):
+                if c.isnumeric() and not last.isnumeric():
+                    lineStr = "".join(inputs[i + iwstart])
+                    for m in numRE.finditer(lineStr):
+                        if j + jwstart >= m.start() and j + jwstart <= m.end():
+                            prodParts.append(int(m.group()))
+                last = c
+        match len(prodParts):
+            case 0:
+                pass
+            case 1:
+                pass
+            case 2:
+                if verbose >= 1:
+                    print(prodParts)
+                part_2 += np.prod(prodParts)
+            case _:
+                raise ValueError(f"Found more than 2 gears: {', '.join(prodParts)}")
+
     print(f"Part 2: {part_2}")
 
     return 0
