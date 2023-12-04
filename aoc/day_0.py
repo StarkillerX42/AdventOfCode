@@ -11,6 +11,8 @@ import asyncclick as click
 import numpy as np
 from rich.progress import track
 
+from aoc import tools
+
 
 async def aoc_from_file(
     file_name: str | Path, form: str, inp: int, custom_function=None
@@ -35,7 +37,8 @@ async def aoc_from_file(
     in_file = Path(file_name) if isinstance(file_name, str) else file_name
 
     with in_file.open("r") as fil:
-        lines = fil.read().splitlines()  # there is no "\n" in these
+        txt = fil.read()
+        lines = txt.splitlines()  # there is no "\n" in these
         match form:
             case "newline ints":
                 inputs = []
@@ -86,7 +89,7 @@ async def aoc_from_file(
                 for line in lines:
                     inputs.append(list(line))
                 inputs = np.array(inputs) == "1"
-            case "int grid":
+            case "grid":
                 inputs = []
                 for line in lines:
                     inputs.append(list(line))
@@ -101,7 +104,7 @@ async def aoc_from_file(
                 else:
                     raise ValueError("Custom function undefined")
             case _:
-                inputs = format
+                inputs = txt
 
     return inputs
 

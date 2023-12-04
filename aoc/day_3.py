@@ -107,7 +107,7 @@ async def aoc_from_file(
     return inputs
 
 
-def get_neighbors_diag(i: int, j: int, arr: np.ndarray) -> list[list[int]]:
+def neighbors_window_slice(i: int, j: int, arr: np.ndarray) -> list[list[int]]:
     arr = np.array(arr)
     ilo = max(0, i - 1)
     ihi = min(i + 1, arr.shape[0])
