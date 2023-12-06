@@ -1,6 +1,8 @@
 """A place for tools that will be useful across Advent of Code
 """
 
+import numpy as np
+
 
 def neighbors_window_slice(i: int, j: int, arr: np.ndarray) -> list[list[int]]:
     """Given a center i and j, will produce a window of neighboring points
